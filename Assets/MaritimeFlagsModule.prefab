@@ -446,7 +446,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4560951839832420}
   - component: {fileID: 331751184801272320}
-  - component: {fileID: 114796561017699420}
+  - component: {fileID: 114785504469257652}
   m_Layer: 0
   m_Name: ScreenMask
   m_TagString: Untagged
@@ -1002,7 +1002,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ShaderNames:
-  - Sprites/Default
+  - Sprites/Diffuse
 --- !u!114 &114406802083564670
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -1067,8 +1067,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ShaderNames:
-  - Sprites/Default
---- !u!114 &114796561017699420
+  - Sprites/Diffuse
+--- !u!114 &114785504469257652
 MonoBehaviour:
   m_ObjectHideFlags: 1
   m_PrefabParentObject: {fileID: 0}
@@ -1093,7 +1093,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ShaderNames:
-  - Sprites/Default
+  - Sprites/Diffuse
 --- !u!212 &212387809694444158
 SpriteRenderer:
   m_ObjectHideFlags: 1
@@ -1107,7 +1107,7 @@ SpriteRenderer:
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
   m_Materials:
-  - {fileID: 10754, guid: 0000000000000000f000000000000000, type: 0}
+  - {fileID: 2100000, guid: 4d64d094815862f4a8f19c19d27a2051, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -1149,7 +1149,7 @@ SpriteRenderer:
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
   m_Materials:
-  - {fileID: 10754, guid: 0000000000000000f000000000000000, type: 0}
+  - {fileID: 2100000, guid: 4d64d094815862f4a8f19c19d27a2051, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -1191,7 +1191,7 @@ SpriteRenderer:
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
   m_Materials:
-  - {fileID: 10754, guid: 0000000000000000f000000000000000, type: 0}
+  - {fileID: 2100000, guid: 4d64d094815862f4a8f19c19d27a2051, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
