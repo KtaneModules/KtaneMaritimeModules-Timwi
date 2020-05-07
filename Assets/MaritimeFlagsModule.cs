@@ -514,4 +514,15 @@ public class MaritimeFlagsModule : MonoBehaviour
                 yield break;
             }
     }
+
+    IEnumerator TwitchHandleForcedSolve()
+    {
+        while (_curCompass != _compassSolution)
+        {
+            Compass.OnInteract();
+            yield return new WaitForSeconds(.1f);
+        }
+        while (!_isSolved)
+            yield return true;
+    }
 }
