@@ -517,11 +517,12 @@ public class MaritimeFlagsModule : MonoBehaviour
 
     IEnumerator TwitchHandleForcedSolve()
     {
-        while (_curCompass != _compassSolution)
+        do
         {
             Compass.OnInteract();
             yield return new WaitForSeconds(.1f);
         }
+        while (_curCompass != _compassSolution);
         while (!_isSolved)
             yield return true;
     }
