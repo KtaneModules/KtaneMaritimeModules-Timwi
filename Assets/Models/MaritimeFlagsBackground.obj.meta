@@ -1,21 +1,26 @@
 fileFormatVersion: 2
-guid: f7b77a80e8ce49b4d8d2727880456e29
+guid: 57bf7933dbd463449b015d2b27a1c328
 ModelImporter:
   serializedVersion: 22
   fileIDToRecycleName:
-    100000: Compass
-    100002: //RootNode
-    400000: Compass
-    400002: //RootNode
-    2300000: Compass
-    3300000: Compass
-    4300000: Compass
+    100000: //RootNode
+    100002: default
+    100004: ModelComponent
+    400000: //RootNode
+    400002: default
+    400004: ModelComponent
+    2300000: default
+    2300002: ModelComponent
+    3300000: default
+    3300002: ModelComponent
+    4300000: default
+    4300002: ModelComponent
   externalObjects:
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
-      name: CompassMat
-    second: {fileID: 2100000, guid: 8c418ad1663d5fe42bff3ed97f437788, type: 2}
+      name: ModelComponentMat
+    second: {fileID: 2100000, guid: d1007a6ea2cf31646a4b9faa5832e66b, type: 2}
   materials:
     importMaterials: 0
     materialName: 0
@@ -45,13 +50,13 @@ ModelImporter:
     isReadable: 1
   meshes:
     lODScreenPercentages: []
-    globalScale: 1
+    globalScale: 0.1
     meshCompression: 0
     addColliders: 0
-    importVisibility: 1
+    importVisibility: 0
     importBlendShapes: 1
-    importCameras: 1
-    importLights: 1
+    importCameras: 0
+    importLights: 0
     swapUVChannels: 0
     generateSecondaryUV: 0
     useFileUnits: 1
@@ -69,7 +74,7 @@ ModelImporter:
     normalSmoothAngle: 60
     normalImportMode: 0
     tangentImportMode: 3
-    normalCalculationMode: 4
+    normalCalculationMode: 0
   importAnimation: 1
   copyAvatar: 0
   humanDescription:
@@ -87,7 +92,7 @@ ModelImporter:
     rootMotionBoneRotation: {x: 0, y: 0, z: 0, w: 1}
     hasTranslationDoF: 0
     hasExtraRoot: 0
-    skeletonHasParents: 1
+    skeletonHasParents: 0
   lastHumanDescriptionAvatarSource: {instanceID: 0}
   animationType: 0
   humanoidOversampling: 1
