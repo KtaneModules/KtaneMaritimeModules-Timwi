@@ -31,4 +31,4 @@ MonoBehaviour:
     manual HTML[/url]'
   version: 2.0
   outputFolder: build
-  previewImage: {fileID: 2800000, guid: bd5c1f4881f57d54481b44e4c8a7779a, type: 3}
+  previewImage: {fileID: 2800000, guid: 5a249694f1b172946a62fb3c92ae66fa, type: 3}
