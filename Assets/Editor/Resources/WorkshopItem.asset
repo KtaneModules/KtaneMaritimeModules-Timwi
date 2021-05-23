@@ -12,6 +12,6 @@ MonoBehaviour:
   m_Name: WorkshopItem
   m_EditorClassIdentifier: 
   WorkshopPublishedFileID: 1436848400
-  Title: Maritime Flags
+  Title: Maritime Modules
   Tags:
   - Regular Module
