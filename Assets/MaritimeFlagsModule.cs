@@ -34,23 +34,34 @@ public class MaritimeFlagsModule : MaritimeBase
         .Split(';');
     private static readonly string[] _compassDirections = @"N,NNE,NE,ENE,E,ESE,SE,SSE,S,SSW,SW,WSW,W,WNW,NW,NNW".Split(',');
 
+    private static int _lastGeneratedRuleSeed;
+    private static Sprite[] _lastGeneratedSprites;
+    private static Flag[] _lastGeneratedFlags;
     private static Callsign[] _lastGeneratedCallsigns;
 
-    protected override void DoRuleseed(MonoRandom rnd)
+    protected override void DoStart(MonoRandom rnd)
     {
-        if (rnd.Seed == 1)
-            _lastGeneratedCallsigns = _seed1Callsigns;
-        else
+        // RULE SEED
+        if (rnd.Seed != _lastGeneratedRuleSeed || _lastGeneratedFlags == null)
         {
-            // Randomize callsigns
-            var names = rnd.ShuffleFisherYates(_allCallsigns.ToArray()).Take(315).OrderBy(x => x).ToArray();
-            var bearings = rnd.ShuffleFisherYates(Enumerable.Range(0, 360).ToArray());
-            _lastGeneratedCallsigns = bearings.Take(315).Select((bearing, ix) => new Callsign { Name = names[ix], Bearing = bearing }).ToArray();
-        }
-    }
+            _lastGeneratedSprites = new Sprite[40];
+            _lastGeneratedRuleSeed = rnd.Seed;
+            _lastGeneratedFlags = GenerateFlags(rnd);
 
-    protected override void DoStart()
-    {
+            if (rnd.Seed == 1)
+                _lastGeneratedCallsigns = _seed1Callsigns;
+            else
+            {
+                // Randomize callsigns
+                var names = rnd.ShuffleFisherYates(_allCallsigns.ToArray()).Take(315).OrderBy(x => x).ToArray();
+                var bearings = rnd.ShuffleFisherYates(Enumerable.Range(0, 360).ToArray());
+                _lastGeneratedCallsigns = bearings.Take(315).Select((bearing, ix) => new Callsign { Name = names[ix], Bearing = bearing }).ToArray();
+            }
+        }
+        // END OF RULE SEED
+
+
+
         FlagDisplay1.sprite = null;
         FlagDisplay2.sprite = null;
 
@@ -101,6 +112,11 @@ public class MaritimeFlagsModule : MaritimeBase
         Log("Bearing from callsign: {0}", _callsign.Bearing);
         Log("Final bearing: {0}", (_bearingOnModule + _callsign.Bearing) % 360);
         Log("Solution: {0}", _compassDirections[_compassSolution]);
+    }
+
+    private Sprite GetFlagSprite(int ix)
+    {
+        return _lastGeneratedSprites[ix] ?? (_lastGeneratedSprites[ix] = GenerateFlagSprite(_lastGeneratedFlags[ix]));
     }
 
     private IEnumerator AlignCompass()
@@ -197,6 +213,7 @@ public class MaritimeFlagsModule : MaritimeBase
 
     public IEnumerator ProcessTwitchCommand(string command)
     {
+        command = command.Trim();
         for (int i = 0; i < _compassDirections.Length; i++)
             if (_compassDirections[i].Equals(command, StringComparison.InvariantCultureIgnoreCase))
             {
@@ -207,7 +224,7 @@ public class MaritimeFlagsModule : MaritimeBase
             }
     }
 
-    IEnumerator TwitchHandleForcedSolve()
+    public IEnumerator TwitchHandleForcedSolve()
     {
         do
         {

@@ -79,111 +79,97 @@ public abstract class MaritimeBase : MonoBehaviour
         new[] { new ColorInfo { Name = "blue", Color = Color.blue }, new ColorInfo { Name = "black", Color = Color.black } },
         new[] { new ColorInfo { Name = "yellow", Color = new Color(1, 1, 0) }, new ColorInfo { Name = "white", Color = Color.white } });
 
-    protected abstract void DoStart();
-    protected abstract void DoRuleseed(MonoRandom rnd);
-
-    private static int _lastGeneratedRuleSeed;
-    private static Sprite[] _lastGeneratedSprites;
-    private static Texture2D[] _lastGeneratedTextures;
-    private static Flag[] _lastGeneratedFlags;
+    protected abstract void DoStart(MonoRandom rnd);
 
     void Start()
     {
         _moduleId = _moduleIdCounter++;
         _isSolved = false;
 
+        var rnd = RuleSeedable.GetRNG();
+        Log("Using rule seed: {0}", rnd.Seed);
+        DoStart(rnd);
+    }
+
+    protected Flag[] GenerateFlags(MonoRandom rnd)
+    {
         var red = _colorGroups[0][0];
         var blue = _colorGroups[1][0];
         var black = _colorGroups[1][1];
         var yellow = _colorGroups[2][0];
         var white = _colorGroups[2][1];
 
-        var rnd = RuleSeedable.GetRNG();
-        Log("Using rule seed: {0}", rnd.Seed);
-
-        if (rnd.Seed != _lastGeneratedRuleSeed || _lastGeneratedFlags == null)
+        if (rnd.Seed == 1)
         {
-            _lastGeneratedSprites = new Sprite[40];
-            _lastGeneratedTextures = new Texture2D[40];
-            _lastGeneratedRuleSeed = rnd.Seed;
-
-            if (rnd.Seed == 1)
+            return new Flag[]
             {
-                _lastGeneratedFlags = new Flag[]
-                {
-                    new Flag(_flagDesigns[1], new[] { white, blue }, cutout: true),
-                    new Flag(_flagDesigns[0], new[] { red }, cutout: true),
-                    new Flag(_flagDesigns[10], new[] { blue, white, red }),
-                    new Flag(_flagDesigns[9], new[] { yellow, blue }),
-                    new Flag(_flagDesigns[6], new[] { blue, red }),
-                    new Flag(_flagDesigns[12], new[] { white, red }),
-                    new Flag(_flagDesigns[5], new[] { yellow, blue }),
-                    new Flag(_flagDesigns[1], new[] { white, red }),
-                    new Flag(_flagDesigns[13], new[] { yellow, black }),
-                    new Flag(_flagDesigns[8], new[] { white, blue }),
-                    new Flag(_flagDesigns[1], new[] { yellow, blue }),
-                    new Flag(_flagDesigns[15], new[] { black, yellow }),
-                    new Flag(_flagDesigns[19], new[] { blue, white }),
-                    new Flag(_flagDesigns[18], new[] { white, blue }),
-                    new Flag(_flagDesigns[20], new[] { yellow, red }),
-                    new Flag(_flagDesigns[21], new[] { blue, white }),
-                    new Flag(_flagDesigns[0], new[] { yellow }),
-                    new Flag(_flagDesigns[25], new[] { red, yellow }),
-                    new Flag(_flagDesigns[21], new[] { white, blue }),
-                    new Flag(_flagDesigns[2], new[] { red, white, blue }),
-                    new Flag(_flagDesigns[15], new[] { white, red }),
-                    new Flag(_flagDesigns[19], new[] { white, red }),
-                    new Flag(_flagDesigns[22], new[] { blue, white, red }),
-                    new Flag(_flagDesigns[25], new[] { white, blue }),
-                    new Flag(_flagDesigns[27], new[] { yellow, red }),
-                    new Flag(_flagDesigns[28], new[] { yellow, red, black, blue }),
-                    new Flag(_flagDesigns[33], new[] { white, blue }),
-                    new Flag(_flagDesigns[8], new[] { yellow, red }),
-                    new Flag(_flagDesigns[8], new[] { red, yellow }),
-                    new Flag(_flagDesigns[8], new[] { red, blue }),
-                    new Flag(_flagDesigns[19], new[] { red, white }),
-                    new Flag(_flagDesigns[19], new[] { yellow, blue }),
-                    new Flag(_flagDesigns[26], new[] { white, blue }),
-                    new Flag(_flagDesigns[3], new[] { white, red }),
-                    new Flag(_flagDesigns[3], new[] { blue, yellow }),
-                    new Flag(_flagDesigns[3], new[] { white, blue }),
-                    new Flag(_repeaterDesigns[0], new[] { blue, yellow }),
-                    new Flag(_repeaterDesigns[1], new[] { blue, white }),
-                    new Flag(_repeaterDesigns[2], new[] { white, black }),
-                    new Flag(_repeaterDesigns[3], new[] { red, yellow })
-                };
-            }
-            else
-            {
-                _lastGeneratedFlags = new Flag[40];
-                if (rnd.Seed == 0)
-                {
-                    for (var k = 0; k < 2; k++)
-                    {
-                        var designs = k == 0 ? _flagDesigns : _repeaterDesigns;
-                        for (var i = 0; i < designs.Length; i++)
-                        {
-                            var colors = new ColorInfo[designs[i].NumColors];
-                            for (var j = 0; j < designs[i].NumColors; j++)
-                            {
-                                var n = (float) (designs[i].NumColors == 1 ? .5 : .8 * j / (designs[i].NumColors - 1) + .1);
-                                colors[j] = new ColorInfo { Color = new Color(n, n, n), Name = "Gray " + n };
-                            }
-                            _lastGeneratedFlags[(k == 1) ? 36 + i : i] = new Flag(designs[i], colors, designs[i].CutoutAllowed);
-                        }
-                    }
-                }
-                else
-                {
-                    var letterNumberFlags = generateFlags(36, _flagDesigns, rnd, "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789".Select(ch => ch.ToString()).ToArray());
-                    var repeaterFlags = generateFlags(4, _repeaterDesigns, rnd, Enumerable.Range(1, 4).Select(i => "Repeat " + i).ToArray());
-                    _lastGeneratedFlags = letterNumberFlags.Concat(repeaterFlags).ToArray();
-                }
-            }
-            DoRuleseed(rnd);
+                new Flag(_flagDesigns[1], new[] { white, blue }, cutout: true),
+                new Flag(_flagDesigns[0], new[] { red }, cutout: true),
+                new Flag(_flagDesigns[10], new[] { blue, white, red }),
+                new Flag(_flagDesigns[9], new[] { yellow, blue }),
+                new Flag(_flagDesigns[6], new[] { blue, red }),
+                new Flag(_flagDesigns[12], new[] { white, red }),
+                new Flag(_flagDesigns[5], new[] { yellow, blue }),
+                new Flag(_flagDesigns[1], new[] { white, red }),
+                new Flag(_flagDesigns[13], new[] { yellow, black }),
+                new Flag(_flagDesigns[8], new[] { white, blue }),
+                new Flag(_flagDesigns[1], new[] { yellow, blue }),
+                new Flag(_flagDesigns[15], new[] { black, yellow }),
+                new Flag(_flagDesigns[19], new[] { blue, white }),
+                new Flag(_flagDesigns[18], new[] { white, blue }),
+                new Flag(_flagDesigns[20], new[] { yellow, red }),
+                new Flag(_flagDesigns[21], new[] { blue, white }),
+                new Flag(_flagDesigns[0], new[] { yellow }),
+                new Flag(_flagDesigns[25], new[] { red, yellow }),
+                new Flag(_flagDesigns[21], new[] { white, blue }),
+                new Flag(_flagDesigns[2], new[] { red, white, blue }),
+                new Flag(_flagDesigns[15], new[] { white, red }),
+                new Flag(_flagDesigns[19], new[] { white, red }),
+                new Flag(_flagDesigns[22], new[] { blue, white, red }),
+                new Flag(_flagDesigns[25], new[] { white, blue }),
+                new Flag(_flagDesigns[27], new[] { yellow, red }),
+                new Flag(_flagDesigns[28], new[] { yellow, red, black, blue }),
+                new Flag(_flagDesigns[33], new[] { white, blue }),
+                new Flag(_flagDesigns[8], new[] { yellow, red }),
+                new Flag(_flagDesigns[8], new[] { red, yellow }),
+                new Flag(_flagDesigns[8], new[] { red, blue }),
+                new Flag(_flagDesigns[19], new[] { red, white }),
+                new Flag(_flagDesigns[19], new[] { yellow, blue }),
+                new Flag(_flagDesigns[26], new[] { white, blue }),
+                new Flag(_flagDesigns[3], new[] { white, red }),
+                new Flag(_flagDesigns[3], new[] { blue, yellow }),
+                new Flag(_flagDesigns[3], new[] { white, blue }),
+                new Flag(_repeaterDesigns[0], new[] { blue, yellow }),
+                new Flag(_repeaterDesigns[1], new[] { blue, white }),
+                new Flag(_repeaterDesigns[2], new[] { white, black }),
+                new Flag(_repeaterDesigns[3], new[] { red, yellow })
+            };
         }
-
-        DoStart();
+        else if (rnd.Seed == 0)
+        {
+            var generatedFlags = new Flag[40];
+            for (var k = 0; k < 2; k++)
+            {
+                var designs = k == 0 ? _flagDesigns : _repeaterDesigns;
+                for (var i = 0; i < designs.Length; i++)
+                {
+                    var colors = new ColorInfo[designs[i].NumColors];
+                    for (var j = 0; j < designs[i].NumColors; j++)
+                    {
+                        var n = (float) (designs[i].NumColors == 1 ? .5 : .8 * j / (designs[i].NumColors - 1) + .1);
+                        colors[j] = new ColorInfo { Color = new Color(n, n, n), Name = "Gray " + n };
+                    }
+                    generatedFlags[(k == 1) ? 36 + i : i] = new Flag(designs[i], colors, designs[i].CutoutAllowed);
+                }
+            }
+            return generatedFlags;
+        }
+        else
+        {
+            var letterNumberFlags = generateFlags(36, _flagDesigns, rnd, "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789".Select(ch => ch.ToString()).ToArray());
+            var repeaterFlags = generateFlags(4, _repeaterDesigns, rnd, Enumerable.Range(1, 4).Select(i => "Repeat " + i).ToArray());
+            return letterNumberFlags.Concat(repeaterFlags).ToArray();
+        }
     }
 
     protected void DebugLog(string format, params object[] args) { Log(format, true, args); }
@@ -203,13 +189,8 @@ public abstract class MaritimeBase : MonoBehaviour
     private const int _flagPadding = 16;
     private const int _flagThickness = 8;
 
-    protected Texture2D GetFlagTexture(int ix)
+    protected Texture2D GenerateFlagTexture(Flag flag)
     {
-        if (_lastGeneratedTextures[ix] != null)
-            return _lastGeneratedTextures[ix];
-
-        var flag = _lastGeneratedFlags[ix];
-
         var tx = new Texture2D(_flagWidth, _flagHeight, TextureFormat.ARGB32, false);
         tx.SetPixels(newArray(_flagWidth * _flagHeight, i =>
         {
@@ -267,15 +248,12 @@ public abstract class MaritimeBase : MonoBehaviour
             return new Color(0, 0, 0, 0);
         }));
         tx.Apply();
-        _lastGeneratedTextures[ix] = tx;
         return tx;
     }
 
-    protected Sprite GetFlagSprite(int ix)
+    protected Sprite GenerateFlagSprite(Flag flag)
     {
-        if (_lastGeneratedSprites[ix] == null)
-            _lastGeneratedSprites[ix] = Sprite.Create(GetFlagTexture(ix), new Rect(0, 0, _flagWidth, _flagHeight), new Vector2(.5f, .5f));
-        return _lastGeneratedSprites[ix];
+        return Sprite.Create(GenerateFlagTexture(flag), new Rect(0, 0, _flagWidth, _flagHeight), new Vector2(.5f, .5f));
     }
 
     private List<Flag> generateFlags(int count, FlagDesign[] designs, MonoRandom rnd, string[] flagNames)

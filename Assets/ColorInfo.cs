@@ -1,7 +1,10 @@
 ﻿using UnityEngine;
 
-sealed class ColorInfo
+namespace MaritimeFlags
 {
-    public string Name;
-    public Color Color;
+    public sealed class ColorInfo
+    {
+        public string Name;
+        public Color Color;
+    }
 }

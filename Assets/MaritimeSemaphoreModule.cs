@@ -3,6 +3,8 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Text.RegularExpressions;
+using MaritimeFlags;
 using UnityEngine;
 using Rnd = UnityEngine.Random;
 
@@ -35,35 +37,37 @@ public class MaritimeSemaphoreModule : MaritimeBase
 
     private Material _leftMaterial;
     private Material _rightMaterial;
-    private static int[][] _table;
     private FlagInfo[] _flagInfos;
     private int _curPos;
     private int _solution;
     private Coroutine _transition;
     private Coroutine _submit;
 
-    protected override void DoRuleseed(MonoRandom rnd)
-    {
-        _table = new int[8][];
-        for (var i = 0; i < 8; i++)
-        {
-            _table[i] = new int[20];
-            for (var j = 0; j < 20; j++)
-                _table[i][j] = rnd.Next(1, 10);
-        }
-    }
+    private static int _lastGeneratedRuleSeed;
+    private static Texture2D[] _lastGeneratedTextures;
+    private static Flag[] _lastGeneratedFlags;
+    private static int[] _table;
+
+    private const int _numSlots = 6;
 
     struct FlagInfo : IEquatable<FlagInfo>
     {
         public int LeftMaritime;
         public int RightMaritime;
         public int Semaphore;
+        public bool IsInvalid
+        {
+            get
+            {
+                return LeftMaritime == Semaphore || RightMaritime == Semaphore ||
+                    Math.Abs(LeftMaritime - Semaphore) > 10 || Math.Abs(RightMaritime - Semaphore) > 10 || Math.Sign(LeftMaritime - Semaphore) == Math.Sign(RightMaritime - Semaphore);
+            }
+        }
         public bool IsDummy
         {
             get
             {
-                return LeftMaritime == Semaphore || RightMaritime == Semaphore || LeftMaritime >= 26 || RightMaritime >= 26 ||
-                    Math.Abs(LeftMaritime - Semaphore) > 10 || Math.Abs(RightMaritime - Semaphore) > 10 || Math.Sign(LeftMaritime - Semaphore) == Math.Sign(RightMaritime - Semaphore);
+                return LeftMaritime >= 26 || RightMaritime >= 26;
             }
         }
 
@@ -72,7 +76,7 @@ public class MaritimeSemaphoreModule : MaritimeBase
             while (true)
             {
                 var fi = new FlagInfo { LeftMaritime = Rnd.Range(0, 36), RightMaritime = Rnd.Range(0, 36), Semaphore = Rnd.Range(0, 26) };
-                if (!avoidDummy || !fi.IsDummy)
+                if (!fi.IsInvalid && (!avoidDummy || !fi.IsDummy))
                     return fi;
             }
         }
@@ -82,8 +86,27 @@ public class MaritimeSemaphoreModule : MaritimeBase
         public override int GetHashCode() { return LeftMaritime + 47 * RightMaritime + 2347 * Semaphore; }
     }
 
-    protected override void DoStart()
+    protected override void DoStart(MonoRandom rnd)
     {
+        // RULE SEED
+        if (rnd.Seed != _lastGeneratedRuleSeed || _lastGeneratedFlags == null)
+        {
+            _lastGeneratedTextures = new Texture2D[40];
+            _lastGeneratedRuleSeed = rnd.Seed;
+            _lastGeneratedFlags = GenerateFlags(rnd);
+
+            _table = new int[2 * 10 * _numSlots];
+            for (var i = 0; i < 2 * _numSlots; i++)
+            {
+                var nums = Enumerable.Range(0, 10).ToArray();
+                rnd.ShuffleFisherYates(nums);
+                Array.Copy(nums, 0, _table, 10 * i, 10);
+            }
+            DebugLog("Generated table for rule seed {0}: {1}", rnd.Seed, _table.Join(", "));
+        }
+        // END OF RULE SEED
+
+
         _leftMaterial = LeftFlag.sharedMaterial = LeftFlag2.sharedMaterial = new Material(FlagMaterial);
         _rightMaterial = RightFlag.sharedMaterial = RightFlag2.sharedMaterial = new Material(FlagMaterial);
 
@@ -93,7 +116,7 @@ public class MaritimeSemaphoreModule : MaritimeBase
         iter++;
         flagInfos.Clear();
         var hasDummy = false;
-        while (flagInfos.Count < 8)
+        while (flagInfos.Count < _numSlots)
         {
             var fi = FlagInfo.Generate(hasDummy);
             if (fi.IsDummy)
@@ -105,36 +128,51 @@ public class MaritimeSemaphoreModule : MaritimeBase
 
         _flagInfos = flagInfos.ToArray().Shuffle();
 
-        var solutionLeft = 0;
-        var solutionRight = 0;
-        for (var i = 0; i < _flagInfos.Length; i++)
+        var values = new List<int>();
+        for (var i = 0; i < _numSlots; i++)
         {
             var fi = _flagInfos[i];
+            var val = 0;
             if (fi.IsDummy)
-                continue;
-            if (fi.LeftMaritime < fi.Semaphore)
             {
-                solutionLeft += _table[i][10 - (fi.Semaphore - fi.LeftMaritime)];
-                solutionRight += _table[i][9 + (fi.RightMaritime - fi.Semaphore)];
+                if (fi.LeftMaritime >= 26)
+                    val += fi.LeftMaritime - 26;
+                if (fi.RightMaritime >= 26)
+                    val += fi.RightMaritime - 26;
+            }
+            else if (fi.LeftMaritime < fi.Semaphore)
+            {
+                val += _table[20 * i + 10 - (fi.Semaphore - fi.LeftMaritime)];
+                val += _table[20 * i + 9 + (fi.RightMaritime - fi.Semaphore)];
             }
             else
             {
-                solutionLeft += _table[i][10 - (fi.Semaphore - fi.RightMaritime)];
-                solutionRight += _table[i][9 + (fi.LeftMaritime - fi.Semaphore)];
+                val += _table[20 * i + 10 - (fi.Semaphore - fi.RightMaritime)];
+                val += _table[20 * i + 9 + (fi.LeftMaritime - fi.Semaphore)];
             }
+            values.Add(val);
         }
 
-        _solution = ((solutionLeft - solutionRight) % 8 + 8) % 8;
+        _solution = (values.Sum() + _numSlots - 1) % _numSlots;   // −1 to compensate for the player’s 1-based counting
         if (_flagInfos[_solution].IsDummy)
             goto tryAgain;
 
         var alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-        for (var i = 0; i < _flagInfos.Length; i++)
-            Log("Position {0}: Left Maritime = {1}, Right Maritime = {2}, Semaphore = {3}{4}", i + 1, alphabet[_flagInfos[i].LeftMaritime], alphabet[_flagInfos[i].RightMaritime], alphabet[_flagInfos[i].Semaphore], i == _solution ? " (SOLUTION)" : _flagInfos[i].IsDummy ? " (DUMMY)" : "");
+        for (var i = 0; i < _numSlots; i++)
+            Log("Position {0}: Left Maritime = {1}, Right Maritime = {2}, Semaphore = {3} (+{4}){5}", i + 1, alphabet[_flagInfos[i].LeftMaritime], alphabet[_flagInfos[i].RightMaritime], alphabet[_flagInfos[i].Semaphore],
+                values[i], i == _solution ? " (SOLUTION)" : _flagInfos[i].IsDummy ? " (DUMMY)" : "");
 
         setPos(0, true);
         LeftButton.OnInteract += ButtonPress(LeftButton, -1);
         RightButton.OnInteract += ButtonPress(RightButton, 1);
+        StartCoroutine(CheckTP());
+    }
+
+    private IEnumerator CheckTP()
+    {
+        yield return null;
+        if (TwitchPlaysActive)
+            Log("Twitch Plays mode is active.");
     }
 
     private KMSelectable.OnInteractHandler ButtonPress(KMSelectable btn, int offset)
@@ -143,10 +181,13 @@ public class MaritimeSemaphoreModule : MaritimeBase
         {
             btn.AddInteractionPunch(.5f);
             Audio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.ButtonPress, btn.transform);
+            if (_isSolved)
+                return false;
             setPos(_curPos + offset);
             if (_submit != null)
                 StopCoroutine(_submit);
-            _submit = StartCoroutine(submit());
+            if (!TwitchPlaysActive)
+                _submit = StartCoroutine(submit());
             return false;
         };
     }
@@ -159,10 +200,11 @@ public class MaritimeSemaphoreModule : MaritimeBase
         if (_curPos == _solution)
         {
             Log("Module solved!");
+            Audio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.CorrectChime, transform);
             Module.HandlePass();
             _isSolved = true;
         }
-        else if (!_flagInfos[_curPos].IsDummy)
+        else if (!_flagInfos[_curPos].IsDummy && !_isSolved)
         {
             Log("You stayed on position {0} for 10 seconds. Strike!", _curPos + 1);
             Module.HandleStrike();
@@ -171,7 +213,7 @@ public class MaritimeSemaphoreModule : MaritimeBase
 
     private void setPos(int pos, bool forced = false)
     {
-        var newPos = Math.Max(0, Math.Min(7, pos));
+        var newPos = Math.Max(0, Math.Min(_numSlots - 1, pos));
         if (newPos == _curPos && !forced)
             return;
         _curPos = newPos;
@@ -185,8 +227,13 @@ public class MaritimeSemaphoreModule : MaritimeBase
             GetFlagTexture(_flagInfos[_curPos].RightMaritime),
             -leftSema,
             -rightSema,
-            leftSema < 0 ? 0 : 180,
-            rightSema > 0 ? 180 : 0));
+            leftSema < 0 || leftSema > 180 ? 0 : 180,
+            rightSema > 0 || rightSema < -180 ? 180 : 0));
+    }
+
+    private Texture2D GetFlagTexture(int ix)
+    {
+        return _lastGeneratedTextures[ix] ?? (_lastGeneratedTextures[ix] = GenerateFlagTexture(_lastGeneratedFlags[ix]));
     }
 
     float _lastLeftFlagRot, _lastRightFlagRot, _lastLeftPoleRot, _lastRightPoleRot, _lastLeftScale, _lastRightScale;
@@ -231,17 +278,93 @@ public class MaritimeSemaphoreModule : MaritimeBase
         _transition = null;
     }
 
-    //#pragma warning disable 414
-    //    private readonly string TwitchHelpMessage = @"!{0} ?";
-    //#pragma warning restore 414
+#pragma warning disable 414
+    private bool TwitchPlaysActive = false;
+    private readonly string TwitchHelpMessage = @"!{0} next | !{0} prev | !{0} dummy [identify the dummy] | !{0} set 3 [move to position 3] | !{0} submit";
+    private bool _twitchDummyIdentified = false;
+#pragma warning restore 414
 
-    //    public IEnumerator ProcessTwitchCommand(string command)
-    //    {
-    //        yield break;
-    //    }
+    public IEnumerator ProcessTwitchCommand(string command)
+    {
+        Match m;
+        int i;
 
-    //    IEnumerator TwitchHandleForcedSolve()
-    //    {
-    //        return null;
-    //    }
+        if ((m = Regex.Match(command, @"^\s*(?:(?<n>next|n|right|r)|prev|p|left|l)\s*$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)).Success)
+        {
+            yield return null;
+            if (_flagInfos[_curPos].IsDummy && !_twitchDummyIdentified)
+            {
+                Log("TP: Strike because you tried to move off of the dummy without typing “!# dummy” first.");
+                Module.HandleStrike();
+                yield break;
+            }
+            yield return new[] { m.Groups["n"].Success ? RightButton : LeftButton };
+            yield break;
+        }
+        else if (Regex.IsMatch(command, @"^\s*(?:dummy|d|identify|mark)\s*$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant))
+        {
+            yield return null;
+            if (!_flagInfos[_curPos].IsDummy)
+            {
+                Log("TP: Strike because you typed “!# dummy” when you weren’t on the dummy.");
+                Module.HandleStrike();
+                yield break;
+            }
+            _twitchDummyIdentified = true;
+            yield break;
+        }
+        else if ((m = Regex.Match(command, @"^\s*(?:set|s)\s+(\d+)\s*$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)).Success && int.TryParse(m.Groups[1].Value, out i) && i >= 1 && i <= 8)
+        {
+            yield return null;
+            i--;
+            if (_flagInfos[_curPos].IsDummy && i != _curPos && !_twitchDummyIdentified)
+            {
+                Log("TP: Strike because you tried to move off of the dummy without typing “!# dummy” first.");
+                Module.HandleStrike();
+                yield break;
+            }
+            while (_curPos < i)
+            {
+                setPos(_curPos + 1);
+                yield return new WaitForSeconds(.25f);
+            }
+            while (_curPos > i)
+            {
+                setPos(_curPos - 1);
+                yield return new WaitForSeconds(.25f);
+            }
+            yield break;
+        }
+        else if (Regex.IsMatch(command, @"^\s*submit\s*$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant))
+        {
+            yield return null;
+            if (_submit != null)
+                StopCoroutine(_submit);
+            if (!_flagInfos[_curPos].IsDummy)
+            {
+                _submit = StartCoroutine(submit());
+                yield return _curPos == _solution ? "solve" : "strike";
+            }
+            yield break;
+        }
+    }
+
+    IEnumerator TwitchHandleForcedSolve()
+    {
+        while (_curPos < _solution)
+        {
+            setPos(_curPos + 1);
+            yield return new WaitForSeconds(.25f);
+        }
+        while (_curPos > _solution)
+        {
+            setPos(_curPos - 1);
+            yield return new WaitForSeconds(.25f);
+        }
+        if (_submit != null)
+            StopCoroutine(_submit);
+        _submit = StartCoroutine(submit());
+        while (!_isSolved)
+            yield return true;
+    }
 }

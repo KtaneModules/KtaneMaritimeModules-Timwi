@@ -1,8 +1,6 @@
-﻿using System;
-
-namespace MaritimeFlags
+﻿namespace MaritimeFlags
 {
-    sealed class Flag
+    public sealed class Flag
     {
         public FlagDesign Design;
         public ColorInfo[] Colors;

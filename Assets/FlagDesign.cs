@@ -2,7 +2,7 @@
 
 namespace MaritimeFlags
 {
-    sealed class FlagDesign
+    public sealed class FlagDesign
     {
         public string NameFmt;
         public int NumColors;
