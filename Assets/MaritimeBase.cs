@@ -248,6 +248,7 @@ public abstract class MaritimeBase : MonoBehaviour
             return new Color(0, 0, 0, 0);
         }));
         tx.Apply();
+        tx.wrapMode = TextureWrapMode.Clamp;
         return tx;
     }
 
