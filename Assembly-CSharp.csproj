@@ -55,12 +55,17 @@
      <Compile Include="Assets\ColorInfo.cs" />
      <Compile Include="Assets\Flag.cs" />
      <Compile Include="Assets\FlagDesign.cs" />
+     <Compile Include="Assets\KMScripts\AssemblyShare.cs" />
+     <Compile Include="Assets\KMScripts\Easing.cs" />
+     <Compile Include="Assets\KMScripts\GameFixes.cs" />
      <Compile Include="Assets\KMScripts\GeneralExtensions.cs" />
      <Compile Include="Assets\KMScripts\KMBombInfoExtensions.cs" />
+     <Compile Include="Assets\KMScripts\KMBossModule.cs" />
      <Compile Include="Assets\KMScripts\KMColorblindMode.cs" />
      <Compile Include="Assets\KMScripts\KMRuleSeedable.cs" />
      <Compile Include="Assets\KMScripts\PrivateWhenPlayingAttribute.cs" />
      <Compile Include="Assets\KMScripts\ReadOnlyWhenPlayingAttribute.cs" />
+     <Compile Include="Assets\KMScripts\ReflectionHelper.cs" />
      <Compile Include="Assets\MaritimeBase.cs" />
      <Compile Include="Assets\MaritimeFlagsModule.cs" />
      <Compile Include="Assets\MaritimeSemaphoreModule.cs" />
