@@ -59,7 +59,7 @@ public abstract class MaritimeBase : MonoBehaviour
         new FlagDesign { NameFmt = @"{2} square on {0}-{1} horizontal", ReverseAllowed = false, NumColors = 3, CutoutAllowed = true, GetPixel = (x, y) => (int) (x * 3) == 1 && (int) (y * 3) == 1 ? 2 : y < .5 ? 1 : 0 },
         new FlagDesign { NameFmt = @"{1} cross on {0}", ReverseAllowed = true, NumColors = 2, CutoutAllowed = false, GetPixel = (x, y) => (int) (x * 5) == 2 || (int) (y * 5) == 2 ? 1 : 0 },
         new FlagDesign { NameFmt = @"{0}-{1} 7 diagonal stripes", ReverseAllowed = false, NumColors = 2, CutoutAllowed = false, GetPixel = (x, y) => (int) (3.5 * (x - y + 1)) % 2 == 0 ? 0 : 1 },
-        new FlagDesign { NameFmt = @"{0}-{1} 10 diagonal stripes", ReverseAllowed = false, NumColors = 2, CutoutAllowed = false, GetPixel = (x, y) => (int) (7 * (x - y + 2)) % 2 == 0 ? 1 : 0 },
+        new FlagDesign { NameFmt = @"{0}-{1} 10 diagonal stripes", ReverseAllowed = false, NumColors = 2, CutoutAllowed = false, GetPixel = (x, y) => (int) (5 * (x - y + 2)) % 2 == 0 ? 1 : 0 },
         new FlagDesign { NameFmt = @"{0}-{3}-{1}-{2} diagonal quadrants", ReverseAllowed = false, NumColors = 4, CutoutAllowed = false, GetPixel = (x, y) => y > x ? (y > 1 - x ? 0 : 2) : (y > 1 - x ? 3 : 1) },
         new FlagDesign { NameFmt = @"{0}-{1} horizontal semicircles pattern", ReverseAllowed = false, NumColors = 2, CutoutAllowed = true, GetPixel = (x, y) => (Math.Pow(x - .5, 2) + Math.Pow(y - .5, 2) < .0625) ^ (y >= .5) ? 0 : 1 },
         new FlagDesign { NameFmt = @"{0}-{1} diagonal semicircles pattern", ReverseAllowed = false, NumColors = 2, CutoutAllowed = false, GetPixel = (x, y) => (Math.Pow(x - .5, 2) + Math.Pow(y - .5, 2) < .0625) ^ (1 - y < x) ? 1 : 0 },
