@@ -313,7 +313,7 @@ public class MaritimeSemaphoreModule : MaritimeBase
             _twitchDummyIdentified = true;
             yield break;
         }
-        else if ((m = Regex.Match(command, @"^\s*(?:set|s)\s+(\d+)\s*$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)).Success && int.TryParse(m.Groups[1].Value, out i) && i >= 1 && i <= 8)
+        else if ((m = Regex.Match(command, @"^\s*(?:set|s)\s+(\d+)\s*$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)).Success && int.TryParse(m.Groups[1].Value, out i) && i >= 1 && i <= _numSlots)
         {
             yield return null;
             i--;
